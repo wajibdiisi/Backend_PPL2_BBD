@@ -1,6 +1,9 @@
 {
     "name": "mevn_stack",
     "version": "1.0.0",
+    "engines": {
+    "node": "14.x"
+  },
     "description": "Simple web application to handle authentication with vue.js",
     "main": "app.js",
     "scripts": {
@@ -10,7 +13,7 @@
       "client": "npm run serve --prefix client",
       "dev": "concurrently \"npm run server\" \"npm run client\""
     },
-    "author": "Narendra Maurya",
+    "author": "Habibib",
     "license": "MIT",
     "dependencies": {
       "bcryptjs": "^2.4.3",
