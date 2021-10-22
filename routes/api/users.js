@@ -17,6 +17,7 @@ const User = require('../../model/User');
         password,
         confirm_password,
         email,
+        username,
         //location,
         //tahun_lahir
     } = req.body
@@ -37,10 +38,20 @@ const User = require('../../model/User');
             });
         }
     });
+    User.findOne({
+        username: username
+    }).then(user => {
+        if (user) {
+            return res.status(400).json({
+                msg: "Email is already registred. Did you forgot your password."
+            });
+        }
+    });
     // The data is valid and new we can register the user
     let newUser = new User({
         name,
         email,
+        username,
         password,
         //location,
         //tahun_lahir
@@ -105,5 +116,19 @@ router.get('/profile', passport.authenticate('jwt', {
         user: req.user
     });
 });
+router.get('/profile/:username', async (req, res) => {
+    const getUser = await User.findOne({username : req.params.username}).then(
+        response => {
+            if(!response){
+                return res.status(404).json({
+                    msg : "User Not Found"
+                })
+            }else {
+               return res.send(response)
+            }
+        }
+    )
+    
+}),
 
 module.exports = router;

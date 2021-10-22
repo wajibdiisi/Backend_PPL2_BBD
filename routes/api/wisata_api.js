@@ -99,5 +99,21 @@ router.post('/:slug/add_bookmark/', auth, async (req, res) => {
 
     )
 
-}   )
+})
+router.post('/:slug/remove_bookmark/', auth, async (req, res) => {
+    await Wisata.findOneAndUpdate(
+        {slug : req.params.slug},
+        { $pull: {"bookmark_id_user": req.userID}},
+        {  safe: true, upsert: true, new:true},
+          function(err, model) {
+            if(err){
+               console.log(err);
+               return res.send(err);
+            }else
+             return res.json(model);
+         }
+
+    )
+
+})
 module.exports = router;
