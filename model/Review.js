@@ -13,6 +13,14 @@ const UserSchema = new Schema({
     },
     description : String,
     rating : Number,
+    content : {
+        type : String
+    },
+    date: {
+        type: Date,
+        default : Date.now
+    },
+
     thumbs_up : [
         {
             type : mongoose.Schema.Types.ObjectId,
