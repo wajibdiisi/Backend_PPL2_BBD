@@ -42,9 +42,11 @@ const PORT = process.env.PORT || 5000;
 const users = require('./routes/api/users');
 const wisata_api = require('./routes/api/wisata_api');
 const review = require('./routes/api/review');
+const planner = require('./routes/api/planner');
 app.use('/api/users',users);
 app.use('/api/wisata',wisata_api);
 app.use('/api/review',review);
+app.use('/api/planner',planner);
 console.log(listEndpoints(app));
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);

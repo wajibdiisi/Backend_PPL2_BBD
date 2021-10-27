@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const key = require('../../config/key').secret;
 const passport = require('passport');
 const User = require('../../model/User');
+const auth = require("../../middleware/auth");
 
 /**
  * @route POST api/users/register
@@ -70,6 +71,13 @@ const User = require('../../model/User');
         });
     });
 });
+
+router.patch('/update_profile', auth, (req,res) => {
+    User.findOneAndUpdate({
+        _id : req.userID
+    },req.body.user)
+    console.log(req.body)
+})
 router.post('/login', (req, res) => {
     User.findOne({
         email: req.body.email
