@@ -8,17 +8,23 @@ const UserSchema = new Schema({
     },
     email: {
         type : String,
-        required : true
+        required : true,
+        unique : true
     },
     password: {
         type: String,
         required : true
     },
-    location: {
+    provinsi: {
         type: String,
         //required : true
     },
-    tahun_lahir: {
+    
+    kota: {
+        type: String,
+        //required : true
+    },
+    tglLahir: {
         type: String,
         //required : true
     },
@@ -29,6 +35,10 @@ const UserSchema = new Schema({
     registered_date: {
         type: Date,
         default : Date.now
+    },
+    profilePicture : {
+        type : String,
+        default : 'https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg'
     }
 });
 

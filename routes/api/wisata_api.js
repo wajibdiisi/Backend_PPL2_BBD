@@ -5,8 +5,11 @@ const key = require('../../config/key').secret;
 const Wisata = require('../../model/Wisata');
 const WisataPhoto = require('../../model/WisataPhoto');
 const WisataController = require('../../controllers/WisataController.js');
+const Discussion = require("../../model/Discussion");
+const Comment = require("../../model/Comment");
 const auth = require("../../middleware/auth");
 const Review = require('../../model/Review');
+
 
 router.get('/all', async (req, res) => {
     const wisata = await Wisata.find()
@@ -46,7 +49,14 @@ router.get('/:slug/review', async (req, res) => {
     const review = await Review.find({
         id_wisata: wisata._id
     }).populate('id_user').exec();
-    res.send(review);
+    const countRating = await Review.find({
+        id_wisata: wisata._id
+    }).select({rating : 1, _id : 0}).exec();
+
+    res.send({
+        data : review,
+        count : countRating,
+    });
 }),
 
     router.post('/:slug/review', auth, async (req, res) => {
@@ -174,4 +184,154 @@ router.post('/:slug/remove_bookmark/', auth, async (req, res) => {
     )
 
 })
+
+router.post('/:slug/discussion',auth, async (req, res) => {
+    const wisata = await Wisata.findOne({
+        slug: req.params.slug
+    });
+    let id_wisata = wisata._id;
+    let id_user = req.userID;
+    let {
+        title,
+        content
+    } = req.body;
+    let newDiscussion = new Discussion({
+        id_wisata,
+        id_user,
+        title,
+        content,
+    });
+    newDiscussion.save().then(user => {
+        return res.status(201).json({
+            success: true,
+            msg: "Review Created Sucessfully"
+        });
+    });
+
+})
+router.delete('/:slug/discussion/:id_discussion', auth, async(req , res) => {
+  
+
+    await Discussion.findOneAndDelete({
+        id_user : req.userID,
+        _id : req.params.id_discussion
+    }).then((response) => {
+        return res.send(response.data)
+    }).catch((err) => {
+        return res.status(404).json({
+            success : false,
+            msg : "Discussion Not Found"
+        })
+    })
+});
+
+router.get('/:slug/discussion', async (req, res) => {
+    const wisata = await Wisata.findOne({
+        slug: req.params.slug
+    });
+    const discussion = await Discussion.find({
+        id_wisata : wisata._id
+    }).populate('id_user')
+        .populate({path : 'id_comments',
+        populate : {
+            path: 'id_user',
+            model : 'users'
+        }
+    }).exec();
+    res.send(discussion)
+
+})
+
+router.get('/:slug/discussion/:id_discussion', async (req,res) => {
+    const discussion = await Discussion.findOne({
+        _id : req.params.id_discussion
+    }).populate('id_user')
+        .populate({path : 'id_comments',
+        populate : {
+            path: 'id_user',
+            model : 'users'
+        }
+    }).exec();
+    res.send(discussion)
+})
+
+router.post('/:slug/discussion/:id_discussion',auth, async (req, res) => {
+    const wisata = await Wisata.findOne({
+            slug : req.params.slug
+        });
+       
+    let id_wisata = wisata._id;
+    let id_user = req.userID;
+    let id_discussion = req.params.id_discussion;
+    let {
+        content
+    } = req.body;
+    let newComment = new Comment({
+        id_wisata,
+        id_user,
+        id_discussion,
+        content,
+    });
+    
+    const commentID = await newComment.save(async function(err,room){
+        await Discussion.findOneAndUpdate({
+            _id : id_discussion
+        }, {
+            $addToSet: {
+                "id_comments": room._id
+            }
+        }, {
+            upsert: true,
+            new : true,
+        },
+            function (err, model) {
+                if (err) {
+                    console.log(err);
+                    return res.send(err);
+                } else
+                return res.status(201).json({
+                    success: true,
+                    msg: "Comment Created Sucessfully"
+                });
+            }
+    
+        )
+    })
+    
+})
+
+router.delete('/:slug/discussion/:id_discussion/:id_comment',auth, async(req,res ) => {
+    console.log(req.userID)
+    console.log(req.params.id_comment)
+    console.log(req.params.id_discussion)
+    await Comment.findOneAndDelete({
+        id_user : req.userID,
+        _id : req.params.id_comment,
+        id_discussion : req.params.id_discussion
+    }).then(async (response) => {
+        await Discussion.findOneAndUpdate({
+            _id : req.params.id_discussion
+        }, {
+            $pull :{
+                'id_comments' : req.params.id_comment
+            }},
+            {
+                safe: true,
+                upsert:true,
+                new : true
+            }
+        ).then((response) => {
+            res.status(201).json({
+                success : true,
+                msg : "Comment Deleted"
+            })
+        })
+    }).catch((err) => {
+        return res.status(404).json({
+            success : false,
+            msg : "Discussion Not Found"
+        })
+    })
+})
+
 module.exports = router;

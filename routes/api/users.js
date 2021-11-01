@@ -6,7 +6,10 @@ const key = require('../../config/key').secret;
 const passport = require('passport');
 const User = require('../../model/User');
 const auth = require("../../middleware/auth");
+//const { upload } = require('../../config/upload'); 
 
+const upload = require("../../config/uploadFile");
+const singleUpload = upload.single("file");
 /**
  * @route POST api/users/register
  * @desc Register the User
@@ -72,11 +75,51 @@ const auth = require("../../middleware/auth");
     });
 });
 
-router.patch('/update_profile', auth, (req,res) => {
-    User.findOneAndUpdate({
-        _id : req.userID
-    },req.body.user)
-    console.log(req.body)
+router.patch('/update_profile', auth, async (req,res) => {
+    singleUpload(req, res, function (err) {
+        if (err) {
+          return res.json({
+            success: false,
+            errors: {
+              title: "Image Upload Error",
+              detail: err.message,
+              error: err,
+            },
+          });
+        }
+        if(req.file){
+        User.findOneAndUpdate({
+            _id : req.userID
+        },{
+            name : req.body.name,
+            email : req.body.email,
+            provinsi : req.body.provinsi,
+            kota : req.body.kota,
+            tglLahir : req.body.tglLahir,
+            profilePicture: req.file.location 
+        },(err,doc) => {
+            if(err) console.log(err)
+        })}
+        else{
+            User.findOneAndUpdate({
+                _id : req.userID
+            },{
+                name : req.body.name,
+                email : req.body.email,
+                provinsi : req.body.provinsi,
+                kota : req.body.kota,
+                tglLahir : req.body.tglLahir
+            },(err,doc) => {
+                if(err) console.log(err)
+            }).then((response) => {
+               return res.status(201).json({
+                   success : "true",
+                   msg : "Data Updated Successfully"
+               })
+            })
+            console.log('tes')
+        }
+      });
 })
 router.post('/login', (req, res) => {
     User.findOne({
