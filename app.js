@@ -66,12 +66,14 @@ const review = require('./routes/api/review');
 const planner = require('./routes/api/planner');
 const location = require('./routes/api/location');
 const notification = require('./routes/api/notification');
+const moment = require('./routes/api/moment');
 app.use('/api/users',users);
 app.use('/api/wisata',wisata_api);
 app.use('/api/review',review);
 app.use('/api/planner',planner);
 app.use('/api/location',location);
 app.use('/api/notification',notification);
+app.use('/api/moment',moment);
 console.log(listEndpoints(app));
 app.use(function (err, req, res, next) {
   console.log('This is the invalid field ->', err.field)

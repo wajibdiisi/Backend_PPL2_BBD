@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../../model/User');
+const auth = require("../../middleware/auth");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const key = require('../../config/key').secret;
 const passport = require('passport');
-const User = require('../../model/User');
-const auth = require("../../middleware/auth");
 //const { upload } = require('../../config/upload'); 
 
 const upload = require("../../config/uploadFile");
@@ -142,7 +142,7 @@ router.post('/login', (req, res) => {
                     email: user.email
                 }
                 jwt.sign(payload, key, {
-                    expiresIn: 604800
+                    expiresIn: "10h"
                 }, (err, token) => {
                     res.status(200).json({
                         success: true,

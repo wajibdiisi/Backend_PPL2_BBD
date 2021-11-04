@@ -13,7 +13,11 @@ const Notification = require('../../model/Notification');
 
 
 router.get('/all', async (req, res) => {
-    const wisata = await Wisata.find()
+    const wisata = await Wisata.find().sort({nama: 'asc'}).exec()
+    res.send(wisata)
+}),
+router.get('/all/provinsi', async (req, res) => {
+    const wisata = await Wisata.find().select({provinsi : 1, _id : 0}).exec()
     res.send(wisata)
 }),
     router.get('/:slug', async (req, res) => {
@@ -312,6 +316,56 @@ router.post('/:slug/discussion/:id_discussion',auth, async (req, res) => {
         )
     })
     
+})
+
+router.post('/:slug/discussion/:id_discussion/thumbs', auth, async(req,res) => {
+    const disc = await Discussion.findOne({
+        _id : req.params.id_discussion,
+        thumbs_up : req.userID
+    })
+    if(disc == null){
+    const discussion = await Discussion.findOneAndUpdate({
+        _id : req.params.id_discussion
+    }, {
+        $addToSet: {
+            "thumbs_up": req.userID
+        },
+    }, {
+        safe: true,
+        upsert: true,
+        new: true
+    },
+        function (err, model) {
+            if (err) {
+                console.log(err);
+                return res.send(err);
+            } else {
+                return res.json(model);
+            }
+        }
+    )}
+    else{
+        const discussion = await Discussion.findOneAndUpdate({
+            _id : req.params.id_discussion
+        }, {
+            $pull: {
+                "thumbs_up": req.userID
+            },
+        }, {
+            safe: true,
+            upsert: true,
+            new: true
+        },
+            function (err, model) {
+                if (err) {
+                    console.log(err);
+                    return res.send(err);
+                } else {
+                    return res.json(model);
+                }
+            }
+        )
+    }
 })
 
 router.delete('/:slug/discussion/:id_discussion/:id_comment',auth, async(req,res ) => {
