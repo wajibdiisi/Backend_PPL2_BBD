@@ -10,6 +10,7 @@ const auth = require("../../middleware/auth");
 
 const upload = require("../../config/uploadFile");
 const singleUpload = upload.single("file");
+
 /**
  * @route POST api/users/register
  * @desc Register the User

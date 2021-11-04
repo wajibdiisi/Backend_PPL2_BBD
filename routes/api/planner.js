@@ -60,7 +60,8 @@ router.post('/plan/:id', auth, async(req,res)=> {
     let {
         wisata,
         time,
-        date
+        date,
+        end_time,
     } = req.body._value
     const get_wisata = await Wisata.findOne({nama : wisata})
     const newDetails = await new PlannerDetails({
@@ -68,6 +69,7 @@ router.post('/plan/:id', auth, async(req,res)=> {
         time,
         id_planner : req.params.id,
         id_user : req.userID,
+        end_time,
         date
     })
     if(newDetails != null){

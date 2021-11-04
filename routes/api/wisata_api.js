@@ -9,6 +9,7 @@ const Discussion = require("../../model/Discussion");
 const Comment = require("../../model/Comment");
 const auth = require("../../middleware/auth");
 const Review = require('../../model/Review');
+const Notification = require('../../model/Notification');
 
 
 router.get('/all', async (req, res) => {
@@ -18,7 +19,7 @@ router.get('/all', async (req, res) => {
     router.get('/:slug', async (req, res) => {
         const wisata = await Wisata.findOne({
             slug: req.params.slug
-        })
+        }).populate('bookmark_id_user').exec();
         res.send(wisata)
     }),
 
@@ -251,7 +252,7 @@ router.get('/:slug/discussion/:id_discussion', async (req,res) => {
             path: 'id_user',
             model : 'users'
         }
-    }).exec();
+    }).populate('id_wisata').exec();
     res.send(discussion)
 })
 
@@ -289,6 +290,19 @@ router.post('/:slug/discussion/:id_discussion',auth, async (req, res) => {
                     console.log(err);
                     return res.send(err);
                 } else
+                if(req.userID != model.id_user){
+                    let id_discussion = model._id
+                    let id_user = model.id_user
+                    let ref_user = req.userID
+                    let content = 'comment'
+                    let newNotification = new Notification({
+                        id_discussion,
+                        id_user,
+                        ref_user,
+                        content,
+                    });
+                    newNotification.save()
+                }
                 return res.status(201).json({
                     success: true,
                     msg: "Comment Created Sucessfully"
@@ -301,9 +315,7 @@ router.post('/:slug/discussion/:id_discussion',auth, async (req, res) => {
 })
 
 router.delete('/:slug/discussion/:id_discussion/:id_comment',auth, async(req,res ) => {
-    console.log(req.userID)
-    console.log(req.params.id_comment)
-    console.log(req.params.id_discussion)
+ 
     await Comment.findOneAndDelete({
         id_user : req.userID,
         _id : req.params.id_comment,

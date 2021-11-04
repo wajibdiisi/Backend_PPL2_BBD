@@ -30,7 +30,8 @@ const UserSchema = new Schema({
     },
     username : {
         type : String,
-        required : true
+        required : true,
+        unique : true
     },
     registered_date: {
         type: Date,

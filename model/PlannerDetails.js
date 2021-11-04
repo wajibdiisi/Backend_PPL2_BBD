@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
     title: String,
     time: String,
+    end_time : String,
     date: String,
     id_planner : {
         type: mongoose.Schema.Types.ObjectId,
