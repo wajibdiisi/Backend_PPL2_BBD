@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const multer  = require('multer')
 var multerS3 = require('multer-s3')
 const path = require('path');
+var compression = require('compression')
 const cors = require('cors');
 const auth = require("./middleware/auth");
 const aws = require('aws-sdk')
@@ -48,6 +49,7 @@ app.use(passport.initialize());
 require('./config/passport')(passport);
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression())
 
 const db = require('./config/key').mongoURI;
 
