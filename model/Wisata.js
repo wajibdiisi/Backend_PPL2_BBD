@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+var random = require('mongoose-simple-random');
 
-const UserSchema = new Schema({
+const WisataSchema = new Schema({
     nama_wisata: String,
     lokasi: String,
     slug: String,
@@ -23,4 +24,6 @@ const UserSchema = new Schema({
     Contact : String,
 });
 
-module.exports = Wisata = mongoose.model('wisata', UserSchema,'wisata');
+WisataSchema.plugin(random)
+
+module.exports = Wisata = mongoose.model('wisata', WisataSchema,'wisata');

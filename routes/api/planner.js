@@ -1,18 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const key = require('../../config/key').secret;
 const Wisata = require('../../model/Wisata');
-const WisataPhoto = require('../../model/WisataPhoto');
-const WisataController = require('../../controllers/WisataController.js');
 const auth = require("../../middleware/auth");
 const Planner = require('../../model/Planner');
 const PlannerDetails = require('../../model/PlannerDetails');
+const User = require('../../model/User');
 
 router.get('/plan_list',auth, async (req,res) => {
     const planner = await Planner.find({id_user : req.userID})
     res.send(planner)
 }),
+
+router.get('/plan_list/:username', async(req,res) => {
+    const user = await User.findOne({username : req.params.username})
+
+    const planner = await Planner.find({id_user : user._id})
+    res.send(planner)
+})
+
 router.post('/new_plan', auth, async (req, res) => {
        
     const newPlan = new Planner({
@@ -43,17 +48,32 @@ router.delete('/plan/:id', auth, async(req , res) => {
 
 router.get('/plan/:id', auth, async(req,res) => {
     const planner = await Planner.findOne({
-        _id : req.params.id
+        _id : req.params.id,
+        id_user : req.userID
     })
+    if(planner)
     res.send(planner)
+    else{
+        res.status(404).json({
+            msg : "Planner not found"
+        })
+    }
 })
 
 
 router.get('/plan/:id/details', auth, async(req,res) => {
+
     const planner = await PlannerDetails.find({
-        id_planner : req.params.id
+        id_planner : req.params.id,
+        id_user : req.userID
     }).populate('id_wisata').exec()
+    if(planner){
     res.send(planner)
+    }else {
+        res.status(404).json({
+            msg : "Planner not found"
+        })
+    }
 })
 
 router.post('/plan/:id', auth, async(req,res)=> {
@@ -64,6 +84,15 @@ router.post('/plan/:id', auth, async(req,res)=> {
         end_time,
     } = req.body._value
     const get_wisata = await Wisata.findOne({nama : wisata})
+    const plannerCheck = await Planner.findOne({
+        _id : req.params.id,
+        id_user : req.userID
+    })
+    if(plannerCheck == null){
+        res.status(404).json({
+            msg : "Planner not found"
+        })
+    }else{
     const newDetails = await new PlannerDetails({
         id_wisata : get_wisata._id,
         time,
@@ -79,6 +108,7 @@ router.post('/plan/:id', auth, async(req,res)=> {
             msg : "Plan has been created successfully"
         })
     }
+}
     
 })
 

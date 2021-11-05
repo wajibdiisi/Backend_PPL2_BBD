@@ -27,7 +27,7 @@ const singleUpload = upload.single("file");
         //tahun_lahir
     } = req.body
     if (password !== confirm_password) {
-        return res.status(400).json({
+        return res.status(406).json({
             msg: "Password do not match."
         });
     }
@@ -38,8 +38,8 @@ const singleUpload = upload.single("file");
         email: email
     }).then(user => {
         if (user) {
-            return res.status(400).json({
-                msg: "Email is already registred. Did you forgot your password."
+            return res.status(406).json({
+                msg: "Email is already registered. Please choose another one."
             });
         }
     });
@@ -47,8 +47,8 @@ const singleUpload = upload.single("file");
         username: username
     }).then(user => {
         if (user) {
-            return res.status(400).json({
-                msg: "Email is already registred. Did you forgot your password."
+            return res.status(406).json({
+                msg: "Username is already registered. Please choose another one."
             });
         }
     });

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+var random = require('mongoose-simple-random');
 
 const MomentSchema = new Schema({
     id_wisata : [{
@@ -39,5 +40,7 @@ const MomentSchema = new Schema({
         }
     ]
 });
+
+MomentSchema.plugin(random)
 
 module.exports = Moment = mongoose.model('moments', MomentSchema,'moments');

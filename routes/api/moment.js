@@ -6,12 +6,22 @@ const Moment = require ('../../model/Moment')
 const Wisata = require ('../../model/Wisata')
 const upload = require("../../config/uploadFile");
 const singleUpload = upload.single("file");
+const Notification = require('../../model/Notification');
+
 
 router.get('/:id_moment',async (req,res) => {
     const moment = await Moment.findOne({
         _id : req.params.id_moment
     }).populate('id_wisata id_user').exec()
     res.send(moment)
+})
+
+router.get('/random/moment', (req,res) => {
+    Moment.findRandom({}, {}, {limit: 9}, function(err, results) {
+        if (!err) {
+            res.send(results) // 5 elements
+        }
+      });
 })
 
 router.get('/wisata/:slug',async (req,res) => {
@@ -21,7 +31,7 @@ router.get('/wisata/:slug',async (req,res) => {
 
     const moment = await Moment.find({
         id_wisata : wisata._id
-    }).populate('id_wisata id_user').exec()
+    }).populate('id_wisata id_user').sort({created_at : 'desc'}).exec()
     res.send(moment)
 })
 
@@ -116,12 +126,24 @@ router.post('/:id_moment/thumbs',auth, async(req,res) => {
                 console.log(err);
                 return res.send(err);
             } else {
+                if(req.userID != model.id_user){
+                    let id_moment = model._id
+                    let id_user = model.id_user
+                    let ref_user = req.userID
+                    let content = 'likeMoment'
+                    let newNotification = new Notification({
+                        id_moment,
+                        id_user,
+                        ref_user,
+                        content
+                    });
+                    newNotification.save()
+                }
                 return res.json(model);
             }
         }
     )}
     else{
-        console.log(findMoment)
         const moment = await Moment.findOneAndUpdate({
             _id : req.params.id_moment
         }, {
@@ -138,6 +160,15 @@ router.post('/:id_moment/thumbs',auth, async(req,res) => {
                     console.log(err);
                     return res.send(err);
                 } else {
+                    if(req.userID != model.id_user){
+                     
+                        let notif =  Notification.findOneAndDelete({
+                            ref_user : req.userID,
+                            id_moment : model._id
+                        }).then(() => {
+                            return res.json(model);
+                        })
+                    }
                     return res.json(model);
                 }
             }

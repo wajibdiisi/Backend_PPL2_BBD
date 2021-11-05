@@ -16,6 +16,21 @@ router.get('/all', async (req, res) => {
     const wisata = await Wisata.find().sort({nama: 'asc'}).exec()
     res.send(wisata)
 }),
+
+router.get('/random', (req,res) => {
+    Wisata.findRandom({}, {}, {limit: 3}, function(err, results) {
+        if (!err) {
+            res.send(results) // 5 elements
+        }
+      });
+    
+})
+
+router.get('/most_favourited', async(req,res) => {
+    const wisata = await Wisata.find().sort({bookmark_id_user : -1}).limit(3).exec()
+
+    res.send(wisata)
+})
 router.get('/all/provinsi', async (req, res) => {
     const wisata = await Wisata.find().select({provinsi : 1, _id : 0}).exec()
     res.send(wisata)
@@ -75,7 +90,6 @@ router.get('/:slug/review', async (req, res) => {
 
         }).then(review => {
             if (review) {
-                console.log(review)
                 return res.status(400).json({
                     msg: "Review made by this user is already exists"
                 });
@@ -88,7 +102,6 @@ router.get('/:slug/review', async (req, res) => {
                     rating,
                     content
                 } = req.body;
-                console.log(content)
                 let newReview = new Review({
                     id_wisata,
                     id_user,
@@ -121,6 +134,11 @@ router.get('/:slug/review', async (req, res) => {
     });
 
 router.post('/:slug/review/:review_id/thumbs', auth, async (req, res) => {
+    const reviewTemp = await Review.findOne({
+        _id : req.params.review_id,
+        thumbs_up : req.userID
+    })
+    if(reviewTemp == null){
     const review = await Review.findOneAndUpdate({
         _id: req.params.review_id
     }, {
@@ -137,10 +155,53 @@ router.post('/:slug/review/:review_id/thumbs', auth, async (req, res) => {
                 console.log(err);
                 return res.send(err);
             } else {
+                if(req.userID != model.id_user){
+                    let id_review = model._id
+                    let id_user = model.id_user
+                    let ref_user = req.userID
+                    let content = 'likeReview'
+                    let newNotification = new Notification({
+                        id_review,
+                        id_user,
+                        ref_user,
+                        content
+                    })
+                    newNotification.save()
+                }
                 return res.json(model);
             }
         }
-    )
+    )}
+    else {
+        const review = await Review.findOneAndUpdate({
+            _id: req.params.review_id
+        }, {
+            $pull: {
+                "thumbs_up": req.userID
+            }
+        }, {
+            safe: true,
+            upsert: true,
+            new: true
+        },
+            function (err, model) {
+                if (err) {
+                    console.log(err);
+                    return res.send(err);
+                } else {
+                    if(req.userID != model.id_user){
+                        let notif =  Notification.findOneAndDelete({
+                            ref_user : req.userID,
+                            id_review : model._id
+                        }).then(() => {
+                            return res.json(model);
+                        })
+                    }
+                    return res.json(model);
+                }
+            }
+        )
+    }
 }),
 
 router.post('/:slug/add_bookmark/', auth, async (req, res) => {
@@ -340,6 +401,19 @@ router.post('/:slug/discussion/:id_discussion/thumbs', auth, async(req,res) => {
                 console.log(err);
                 return res.send(err);
             } else {
+                if(req.userID != model.id_user){
+                    let id_discussion = model._id
+                    let id_user = model.id_user
+                    let ref_user = req.userID
+                    let content = 'likeDiscussion'
+                    let newNotification = new Notification({
+                        id_discussion,
+                        id_user,
+                        ref_user,
+                        content
+                    })
+                    newNotification.save()
+                }
                 return res.json(model);
             }
         }
@@ -358,9 +432,16 @@ router.post('/:slug/discussion/:id_discussion/thumbs', auth, async(req,res) => {
         },
             function (err, model) {
                 if (err) {
-                    console.log(err);
                     return res.send(err);
                 } else {
+                    if(req.userID != model.id_user){
+                        let notif =  Notification.findOneAndDelete({
+                            ref_user : req.userID,
+                            id_discussion : model._id
+                        }).then(() => {
+                            return res.json(model);
+                        })
+                    }
                     return res.json(model);
                 }
             }

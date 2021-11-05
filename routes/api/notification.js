@@ -5,7 +5,13 @@ const Notification = require('../../model/Notification');
 
 
 router.get('/', auth, async (req,res) => {
-    const notification = await Notification.find({id_user : req.userID}).populate('id_user ref_user').sort({created_at : 'desc'}).exec()
+    const notification = await Notification.find({id_user : req.userID}).populate('id_user ref_user')
+    .populate({path : 'id_review',
+        populate : {
+            path: 'id_wisata',
+            model : 'wisata'
+        }
+    }).sort({created_at : 'desc'}).exec()
     res.send(notification)
 })
 
