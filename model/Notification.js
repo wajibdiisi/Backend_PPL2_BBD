@@ -6,6 +6,10 @@ const NotificationSchema = new Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : 'discussion'
     },
+    id_comment : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'comments'
+    },
     id_moment : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'moments'

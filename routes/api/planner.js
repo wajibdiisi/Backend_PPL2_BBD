@@ -116,17 +116,22 @@ router.patch('/plan/:id/:id_details', auth, async (req,res) => {
     let {
         wisata,
         time,
-        date
+        date,
+        end_time
     } = req.body._value
     const get_wisata = await Wisata.findOne({nama : wisata})
-
-    await Planner.findOneAndUpdate({
-        _id : req.params.id,
+    const planner = await PlannerDetails.findOneAndUpdate({
+        _id : req.params.id_details,
+        id_planner : req.params.id,
         id_user : req.userID
     },{
         wisata : get_wisata._id,
         time : time,
+        end_time : end_time,
         date : date
+    })
+    res.status(200).json({
+        msg : "Plan Updated Successfully"
     })
 })    
 

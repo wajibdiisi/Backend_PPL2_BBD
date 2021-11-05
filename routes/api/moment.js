@@ -17,7 +17,7 @@ router.get('/:id_moment',async (req,res) => {
 })
 
 router.get('/random/moment', (req,res) => {
-    Moment.findRandom({}, {}, {limit: 9}, function(err, results) {
+    Moment.findRandom({}, {}, {limit: 9, populate : 'id_wisata'}, function(err, results) {
         if (!err) {
             res.send(results) // 5 elements
         }

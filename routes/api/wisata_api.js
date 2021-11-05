@@ -449,6 +449,82 @@ router.post('/:slug/discussion/:id_discussion/thumbs', auth, async(req,res) => {
     }
 })
 
+router.post('/:slug/discussion/:id_discussion/:id_comment/thumbs', auth, async(req,res) => {
+    const commentChecker = await Comment.findOne({
+        _id : req.params.id_comment,
+        id_discussion : req.params.id_discussion,
+        thumbs_up : req.userID
+    })
+    if(commentChecker == null){
+    const comment = await Comment.findOneAndUpdate({
+        _id : req.params.id_comment,
+        id_discussion : req.params.id_discussion
+    }, {
+        $addToSet: {
+            "thumbs_up": req.userID
+        },
+    }, {
+        safe: true,
+        upsert: true,
+        new: true
+    },
+        function (err, model) {
+            if (err) {
+                console.log(err);
+                return res.send(err);
+            } else {
+                if(req.userID != model.id_user){
+                    let id_comment = model._id
+                    let id_discussion = req.params.id_discussion
+                    let id_user = model.id_user
+                    let ref_user = req.userID
+                    let content_type = 'likeComment'
+                    let newNotification = new Notification({
+                        id_comment,
+                        id_user,
+                        id_discussion,
+                        ref_user,
+                        content : content_type
+                    })
+                    console.log(newNotification)
+                    newNotification.save()
+                }
+                return res.json(model);
+            }
+        }
+    )}
+    else{
+        const comment = await Comment.findOneAndUpdate({
+            _id : req.params.id_comment,
+            id_discussion : req.params.id_discussion
+        }, {
+            $pull: {
+                "thumbs_up": req.userID
+            },
+        }, {
+            safe: true,
+            upsert: true,
+            new: true
+        },
+            function (err, model) {
+                if (err) {
+                    return res.send(err);
+                } else {
+                    if(req.userID != model.id_user){
+                        let notif =  Notification.findOneAndDelete({
+                            ref_user : req.userID,
+                            id_comment : model._id
+                        }).then(() => {
+                            return res.json(model);
+                        })
+                    }
+                    return res.json(model);
+                }
+            }
+        )
+    }
+})
+
 router.delete('/:slug/discussion/:id_discussion/:id_comment',auth, async(req,res ) => {
  
     await Comment.findOneAndDelete({
