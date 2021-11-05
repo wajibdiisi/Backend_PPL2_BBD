@@ -100,6 +100,10 @@ router.patch('/update_profile', auth, async (req,res) => {
             profilePicture: req.file.location 
         },(err,doc) => {
             if(err) console.log(err)
+        }).then((response) =>{
+            res.status(200).json({
+                msg : 'Update Berhasil'
+            })
         })}
         else{
             User.findOneAndUpdate({
