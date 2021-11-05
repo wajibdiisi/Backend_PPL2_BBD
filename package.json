@@ -20,7 +20,7 @@
     "aws-sdk": "^2.1018.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
-    "concurrently": "^4.1.0",
+    "concurrently": "^4.1.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.16.4",
