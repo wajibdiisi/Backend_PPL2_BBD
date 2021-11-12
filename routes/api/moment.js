@@ -83,7 +83,11 @@ router.delete('/:id_moment', auth, async(req,res) => {
         id_user : req.userID,
         _id : req.params.id_moment
     }).then((response) => {
-        return res.send(response.data)
+        Notification.deleteMany({id_user : req.userID, id_moment : req.params.id_moment}).then(()=> {
+            return res.send(response.data)
+
+        })
+       
     }).catch((err) => {
         return res.status(404).json({
             success : false,

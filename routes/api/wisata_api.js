@@ -282,7 +282,10 @@ router.delete('/:slug/discussion/:id_discussion', auth, async(req , res) => {
         id_user : req.userID,
         _id : req.params.id_discussion
     }).then((response) => {
-        return res.send(response.data)
+        Notification.deleteMany({id_user : req.userID, id_discussion : req.params.id_discussion}).then(()=> {
+            return res.send(response.data)
+
+        })
     }).catch((err) => {
         return res.status(404).json({
             success : false,
