@@ -12,7 +12,40 @@ const Notification = require('../../model/Notification');
 router.get('/:id_moment',async (req,res) => {
     const moment = await Moment.findOne({
         _id : req.params.id_moment
-    }).populate('id_wisata id_user').exec()
+    }).populate('id_wisata id_user thumbs_up').exec()
+    res.send(moment)
+})
+
+router.patch('/:id_moment',auth,async (req,res) => {
+    let {
+        title,
+        description,
+        time
+    } = req.body._value
+    const moment = await Moment.findOneAndUpdate({
+        _id : req.params.id_moment,
+        id_user : req.userID
+    },{
+        title,
+        description,
+        time
+    }).then((response) => {
+        res.status(201).json({
+            msg : 'Moment successfully updated'
+        })
+    })
+})
+
+router.get('/edit/:id_moment',auth,async (req,res) => {
+
+    const moment = await Moment.findOne({
+        _id : req.params.id_moment
+    }).populate('id_wisata').exec()
+    if(moment.id_user != req.userID){
+        res.status(401).json({
+            msg: 'Unauthorized'
+        })
+    }else
     res.send(moment)
 })
 
@@ -31,7 +64,7 @@ router.get('/wisata/:slug',async (req,res) => {
 
     const moment = await Moment.find({
         id_wisata : wisata._id
-    }).populate('id_wisata id_user').sort({created_at : 'desc'}).exec()
+    }).populate('id_wisata id_user thumbs_up').sort({created_at : 'desc'}).exec()
     res.send(moment)
 })
 
@@ -41,7 +74,7 @@ router.get('/user/:username',async  (req,res) => {
     })
     const moment = await Moment.find({
         id_user : user._id
-    }).populate('id_wisata id_user').sort({created_at : 'desc'}).exec()
+    }).populate('id_wisata id_user thumbs_up').sort({created_at : 'desc'}).exec()
     res.send(moment)
 })
 
@@ -169,7 +202,9 @@ router.post('/:id_moment/thumbs',auth, async(req,res) => {
                             return res.json(model);
                         })
                     }
+                    else{
                     return res.json(model);
+                    }
                 }
             }
         )

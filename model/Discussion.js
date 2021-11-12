@@ -19,6 +19,10 @@ const DiscussionSchema = new Schema({
         type: Date,
         default : Date.now
     },
+    updated_at: {
+        type : Date,
+        default : Date.now
+    },
     id_comments : [
         {
             type : mongoose.Schema.Types.ObjectId,

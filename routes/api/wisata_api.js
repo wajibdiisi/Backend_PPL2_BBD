@@ -297,10 +297,10 @@ router.get('/:slug/discussion', async (req, res) => {
     });
     const discussion = await Discussion.find({
         id_wisata : wisata._id
-    }).populate('id_user')
+    }).populate('id_user thumbs_up')
         .populate({path : 'id_comments',
         populate : {
-            path: 'id_user',
+            path: 'id_user thumbs_up',
             model : 'users'
         }
     }).exec();
@@ -311,7 +311,7 @@ router.get('/:slug/discussion', async (req, res) => {
 router.get('/:slug/discussion/:id_discussion', async (req,res) => {
     const discussion = await Discussion.findOne({
         _id : req.params.id_discussion
-    }).populate('id_user')
+    }).populate('id_user thumbs_up')
         .populate({path : 'id_comments',
         populate : {
             path: 'id_user',
@@ -376,6 +376,36 @@ router.post('/:slug/discussion/:id_discussion',auth, async (req, res) => {
     
         )
     })
+    
+})
+
+router.patch('/:slug/discussion/:id_discussion',auth, async (req, res) => {
+    const wisata = await Wisata.findOne({
+            slug : req.params.slug
+        });
+       
+    let id_wisata = wisata._id;
+    let {
+        title,
+        content
+    } = req.body._value;
+    
+    await Discussion.findOneAndUpdate({
+        _id : req.params.id_discussion,
+        id_wisata : id_wisata,
+        id_user : req.userID
+    }, 
+    {
+        title,
+        content,
+        updated_at : Date.now()
+    }
+    ).then((response) =>{
+        res.status(200).json({
+            msg : 'You successfully changed your discussion content'
+        })
+    })
+    
     
 })
 
@@ -542,13 +572,29 @@ router.delete('/:slug/discussion/:id_discussion/:id_comment',auth, async(req,res
                 safe: true,
                 upsert:true,
                 new : true
+            }, function (err, model){
+                if (err){
+                    return res.send(err)
+                }else {
+                    if(req.userID != model.id_user){
+                        let notif =  Notification.findOneAndDelete({
+                            ref_user : req.userID,
+                            id_discussion : model._id
+                        }).then(() => {
+                            return res.status(201).json({
+                                success : true,
+                                msg : "Comment Deleted"
+                            })
+                        }) 
+                    }else {
+                        return res.status(201).json({
+                            success : true,
+                            msg : "Comment Deleted"
+                        })
+                    }
+                }
             }
-        ).then((response) => {
-            res.status(201).json({
-                success : true,
-                msg : "Comment Deleted"
-            })
-        })
+        )
     }).catch((err) => {
         return res.status(404).json({
             success : false,
