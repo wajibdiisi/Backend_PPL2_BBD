@@ -129,7 +129,7 @@ router.patch('/update_profile', auth, async (req,res) => {
 router.post('/login', (req, res) => {
     User.findOne({
         email: req.body.email
-    }).then(user => {
+    }).select('+password').then(user => {
         if (!user) {
             return res.status(404).json({
                 msg: "Email is not found.",
