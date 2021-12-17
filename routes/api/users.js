@@ -93,7 +93,6 @@ router.patch('/update_profile', auth, async (req,res) => {
             _id : req.userID
         },{
             name : req.body.name,
-            email : req.body.email,
             provinsi : req.body.provinsi,
             kota : req.body.kota,
             tglLahir : req.body.tglLahir,
