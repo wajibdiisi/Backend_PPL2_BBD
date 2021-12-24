@@ -11,7 +11,12 @@ router.get('/', auth, async (req,res) => {
             path: 'id_wisata',
             model : 'wisata'
         }
-    }).sort({created_at : 'desc'}).exec()
+    }).
+    populate({path : 'id_discussion', populate : {
+        path:'id_wisata',
+        model : 'wisata'
+    }})
+    .sort({created_at : 'desc'}).exec()
     res.send(notification)
 })
 
